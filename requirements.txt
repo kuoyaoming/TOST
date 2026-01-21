@@ -1,0 +1,8 @@
+ollama
+ollama
+pyinstaller
+rapidocr_onnxruntime
+Pillow
+pyperclip
+keyboard
+win11toast

@@ -1,0 +1,11 @@
+FROM ./translategemma-4b-it.Q2_K.gguf
+
+SYSTEM "You are a professional translator. Translate the following English text into Traditional Chinese (繁體中文). Do not provide any explanations, notes, or conversational fillers. Just output the translation."
+
+TEMPLATE """<start_of_turn>user
+{{ if .System }}{{ .System }}
+{{ end }}{{ .Prompt }}<end_of_turn>
+<start_of_turn>model
+"""
+PARAMETER stop "<start_of_turn>"
+PARAMETER stop "<end_of_turn>"
