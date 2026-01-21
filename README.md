@@ -73,4 +73,15 @@ Translategemma/
 ```
 
 ## License
-MIT License. Free to use and modify.
+
+### Application License
+The source code of this application is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+
+### Model License
+The **Translategemma** model is provided under and subject to the **[Gemma Terms of Use](https://ai.google.dev/gemma/terms)**.
+By using this application with the Gemma model, you agree to comply with these terms.
+See [NOTICE](NOTICE) for the mandatory use declaration.
+
+### Third Party Licenses
+This project uses several open-source libraries (RapidOCR, Ollama, etc.).
+Please see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the full list of third-party licenses and attributions.
