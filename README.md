@@ -72,16 +72,28 @@ Translategemma/
 └── requirements.txt     # Python Dependencies
 ```
 
-## License
+## License (授權)
 
-### Application License
+### Application License (軟體授權)
 The source code of this application is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+<br>本應用程式原始碼採用 **MIT 授權**。詳細內容請參閱 [LICENSE](LICENSE)。
 
-### Model License
+### Model License (模型授權)
 The **Translategemma** model is provided under and subject to the **[Gemma Terms of Use](https://ai.google.dev/gemma/terms)**.
 By using this application with the Gemma model, you agree to comply with these terms.
 See [NOTICE](NOTICE) for the mandatory use declaration.
+<br>**Translategemma** 模型受 **[Gemma 使用條款](https://ai.google.dev/gemma/terms)** 約束。
+使用本應用程式及 Gemma 模型即表示您同意遵守這些條款。
+請參閱 [NOTICE](NOTICE) 以取得強制性使用聲明。
 
-### Third Party Licenses
+### Third Party Licenses (第三方授權)
 This project uses several open-source libraries (RapidOCR, Ollama, etc.).
 Please see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the full list of third-party licenses and attributions.
+<br>本專案使用多個開源函式庫 (RapidOCR, Ollama 等)。
+完整第三方授權與來源標示請參閱 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+## Acknowledgements (致謝)
+- **[Google - Translategemma](https://blog.google/innovation-and-ai/technology/developers-tools/translategemma/)**: For the inspiration and the powerful Gemma family of models. (感謝 Google 的啟發以及強大的 Gemma 模型系列)
+- **[mradermacher/translategemma-4b-it-GGUF](https://huggingface.co/mradermacher/translategemma-4b-it-GGUF)**: For providing the quantized GGUF model optimized for offline use. (感謝提供最佳化離線使用的 GGUF 量化模型)
+- **[Antigravity](https://antigravity.google/)**: For the advanced AI agent assistance in building this project. (感謝 Antigravity 的先進 AI 代理協助建構此專案)
+
