@@ -1,32 +1,28 @@
 import tkinter as tk
 from PIL import ImageGrab
-import ctypes
+import sys
+from utils import ScreenInfo
 
 class ScreenSnipper:
     def __init__(self, root):
         self.root = root
-        # Use Toplevel to avoid creating multiple Tk instances (which causes crashes/freezes)
+        # Use Toplevel to avoid creating multiple Tk instances
         self.window = tk.Toplevel(root)
         
-        # Get full virtual screen geometry for multiple monitors
-        try:
-            user32 = ctypes.windll.user32
-            # Process DPI Awareness to get real pixels
-            user32.SetProcessDPIAware() 
-            self.screen_width = user32.GetSystemMetrics(78) # SM_CXVIRTUALSCREEN
-            self.screen_height = user32.GetSystemMetrics(79) # SM_CYVIRTUALSCREEN
-            self.screen_x = user32.GetSystemMetrics(76) # SM_XVIRTUALSCREEN
-            self.screen_y = user32.GetSystemMetrics(77) # SM_YVIRTUALSCREEN
-        except:
-            # Fallback to primary screen
-            self.screen_width = self.root.winfo_screenwidth()
-            self.screen_height = self.root.winfo_screenheight()
-            self.screen_x = 0
-            self.screen_y = 0
+        # Get geometry
+        self.screen_width, self.screen_height, self.screen_x, self.screen_y = ScreenInfo.get_geometry(root)
 
         self.window.geometry(f"{self.screen_width}x{self.screen_height}+{self.screen_x}+{self.screen_y}")
         self.window.overrideredirect(True)
-        self.window.attributes("-alpha", 0.3)
+
+        # Alpha transparency works differently on Windows vs Linux (compositor needed)
+        # On Windows, -alpha works great. On Linux, it requires a compositor.
+        # If no compositor, it might be black.
+        try:
+            self.window.attributes("-alpha", 0.3)
+        except:
+            pass
+
         self.window.configure(bg="black")
         self.window.attributes("-topmost", True)
 
@@ -63,7 +59,7 @@ class ScreenSnipper:
         cur_x = self.canvas.canvasx(event.x)
         cur_y = self.canvas.canvasy(event.y)
         
-        # Minimize/Destroy before capture to avoid capturing the overlay itself (though alpha helps)
+        # Minimize/Destroy before capture to avoid capturing the overlay itself
         self.window.withdraw() 
         # Wait a tiny bit for window to disappear
         self.root.after(100, self.capture_screen, self.start_x, self.start_y, cur_x, cur_y)
@@ -74,8 +70,7 @@ class ScreenSnipper:
         y1, y2 = sorted([y1, y2])
         
         try:
-            # We add screen_x/screen_y because the canvas coordinates were relative to our window, 
-            # which was placed at screen_x, screen_y.
+            # Add screen_x/screen_y offsets
             abs_x1 = int(x1 + self.screen_x)
             abs_y1 = int(y1 + self.screen_y)
             abs_x2 = int(x2 + self.screen_x)
@@ -85,6 +80,9 @@ class ScreenSnipper:
             height = abs_y2 - abs_y1
             
             if width > 10 and height > 10:
+                # all_screens=True is valid for recent Pillow on Windows/macOS.
+                # On Linux, it depends on the backend (xdisplay/scrot).
+                # To be safe, we just pass the bbox.
                 self.captured_image = ImageGrab.grab(bbox=(abs_x1, abs_y1, abs_x2, abs_y2), all_screens=True)
             
         except Exception as e:
@@ -93,21 +91,17 @@ class ScreenSnipper:
         self.window.destroy()
 
     def run(self):
-        # Use wait_window to block until the Toplevel is destroyed
-        # This keeps the logic synchronous for the caller (pipeline_task)
         self.window.wait_window(self.window)
         return self.captured_image
 
 if __name__ == "__main__":
-    # Test harness needs a root
     root = tk.Tk()
     root.withdraw()
     print("Select an area on screen...")
     snipper = ScreenSnipper(root)
     img = snipper.run()
     if img:
-        img.show()
         print("Capture successful.")
     else:
-        print("Capture cancelled or empty.")
+        print("Capture cancelled.")
     root.destroy()

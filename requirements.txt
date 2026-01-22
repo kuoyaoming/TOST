@@ -1,8 +1,8 @@
 ollama
-ollama
 pyinstaller
 rapidocr_onnxruntime
 Pillow
 pyperclip
 keyboard
-win11toast
+win11toast; sys_platform == 'win32'
+pystray
