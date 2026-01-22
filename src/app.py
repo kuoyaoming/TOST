@@ -7,18 +7,25 @@ import queue
 import tkinter as tk
 from snipper import ScreenSnipper
 from ocr_handler import OCRHandler
-from win11toast import toast
+from utils import Notifier
+import pyperclip
+from PIL import Image
+import pystray
+from pystray import MenuItem as item
 
 # Set stdout to handle UTF-8
 sys.stdout.reconfigure(encoding='utf-8')
 
 MODEL_NAME = "translategemma"
 
-# Queue for handling main thread UI tasks (since tkinter needs main thread)
+# Queue for handling main thread UI tasks
 ui_queue = queue.Queue()
 
 # Initialize OCR engine
 ocr_engine = None
+
+# Global state for icon
+icon = None
 
 def get_ocr_engine():
     global ocr_engine
@@ -63,27 +70,31 @@ def run_translation_thread(img):
             result = get_translation(text)
             print(f"結果 (Result): {result}")
             
+            # Copy to clipboard
+            try:
+                pyperclip.copy(result)
+            except Exception:
+                pass
+
             # Show Notification
             if result:
-                toast('翻譯結果 (Translation)', result, duration='long')
+                Notifier.send('翻譯結果 (Translation)', result, duration='long')
         else:
             print("未偵測到文字 (No text detected).")
+            Notifier.send('提示', '未偵測到文字 (No text detected)')
     except Exception as e:
         print(f"Thread Error: {e}")
 
 def pipeline_task(root):
     """Runs the snipper (Main Thread) then offloads processing."""
-    print("\n[Hotkey] Triggered! 準備截圖...")
+    print("\n[Action] Triggered! 準備截圖...")
     
     try:
-        # Snipper blocks here using wait_window, but that's what we want for modal selection
+        # Snipper blocks here using wait_window
         snipper = ScreenSnipper(root)
         img = snipper.run()
         
         if img:
-            # Offload heavy OCR/Translation to another thread 
-            # so we don't block the main loop (though main loop is hidden, 
-            # win11toast or other things might depend on it not being frozen)
             t = threading.Thread(target=run_translation_thread, args=(img,))
             t.start()
         else:
@@ -100,15 +111,38 @@ def process_queue(root):
     """Check queue periodically in the main thread"""
     try:
         while True:
-            # Non-blocking get
             task = ui_queue.get_nowait()
             if task == "trigger":
                 pipeline_task(root)
+            elif task == "quit":
+                root.quit()
     except queue.Empty:
         pass
     
-    # Schedule next check (100ms)
+    # Schedule next check
     root.after(100, process_queue, root)
+
+def create_image():
+    # Create a simple icon for the tray
+    width = 64
+    height = 64
+    image = Image.new('RGB', (width, height), color=(50, 50, 50))
+    dc = Image.new('RGB', (width-10, height-10), color=(255, 255, 255))
+    image.paste(dc, (5, 5))
+    return image
+
+def on_quit(icon, item):
+    icon.stop()
+    ui_queue.put("quit")
+
+def on_snip(icon, item):
+    ui_queue.put("trigger")
+
+def setup_tray():
+    global icon
+    menu = (item('Snip (截圖翻譯)', on_snip), item('Quit (離開)', on_quit))
+    icon = pystray.Icon("name", create_image(), "Translategemma", menu)
+    icon.run_detached()
 
 def main():
     print(f"\n=== Translategemma 背景翻譯神器 (Background Mode) ===")
@@ -117,11 +151,12 @@ def main():
     print("熱鍵 (Hotkey): Shift + Alt + Z")
     print("  -> 觸發截圖 (Trigger Snipper)")
     print("  -> 自動翻譯 (Auto Translate)")
-    print("  -> 顯示 Windows 通知 (Show Win11 Notification)")
-    print("按 Ctrl+C 結束程式 (Press Ctrl+C to exit)")
+    print("  -> 顯示通知 (Show Notification)")
+    print("  -> 複製到剪貼簿 (Copy to Clipboard)")
+    print("System Tray: Right click icon for menu")
     print("-" * 50)
     
-    # Check if model exists (Warning only)
+    # Check if model exists
     try:
         models = ollama.list()
         available_models = [m.model for m in models.models]
@@ -133,12 +168,22 @@ def main():
         pass
 
     # Register hotkey
-    keyboard.add_hotkey('shift+alt+z', hotkey_callback)
+    try:
+        keyboard.add_hotkey('shift+alt+z', hotkey_callback)
+    except ImportError:
+        # Linux without root might fail here
+        print("Warning: Could not register global hotkey (requires root on Linux).")
+        print("Use the System Tray icon to trigger.")
+    except Exception as e:
+        print(f"Hotkey Error: {e}")
 
     # Setup Persistent Root Window
     root = tk.Tk()
-    root.withdraw() # Hide it completely
+    root.withdraw()
     
+    # Start Tray Icon
+    setup_tray()
+
     # Start the queue processor loop
     root.after(100, process_queue, root)
     
@@ -146,7 +191,10 @@ def main():
     try:
         root.mainloop()
     except KeyboardInterrupt:
-        print("\nExiting...")
+        pass
+    finally:
+        if icon:
+            icon.stop()
 
 if __name__ == "__main__":
     main()
