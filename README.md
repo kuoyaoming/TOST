@@ -3,18 +3,20 @@
 [繁體中文](README_zh-TW.md)
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Platform](https://img.shields.io/badge/Platform-Windows-0078D6)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D6)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Ollama](https://img.shields.io/badge/Model-Ollama-black)
 
-A powerful, lightweight, and completely privacy-focused screen translator. Select any area on your screen, and get instant Traditional Chinese translations via Windows native notifications. 
+A powerful, lightweight, and completely privacy-focused screen translator. Select any area on your screen, and get instant Traditional Chinese translations via native notifications. 
 Powered by **Ollama** (AI) and **RapidOCR** (Offline OCR).
 
 ## Features
 - 🔒 **Privacy First**: Everything runs locally. No data is sent to the cloud.
 - 🚀 **Lightweight**: Uses RapidOCR for fast text extraction.
 - 🤖 **AI Powered**: Uses Gemma (via Ollama) for natural translation.
-- 🖥️ **Windows 11 Native**: Results appear as elegant system notifications.
+- 🖥️ **Cross-Platform**: Works on **Windows 11** (Native Notifications) and **Linux** (`notify-send`).
+- 📂 **System Tray**: Minimized background operation without clutter.
+- 📋 **Auto-Copy**: Translations are automatically copied to your clipboard.
 - ⌨️ **Global Hotkey**: Press `Shift + Alt + Z` anytime to trigger.
 - 📸 **Infinite Snipping**: Optimized persistent overlay engine.
 
@@ -26,51 +28,73 @@ Powered by **Ollama** (AI) and **RapidOCR** (Offline OCR).
     *   Place the `.gguf` file in the `models/` directory.
 
 ### Quick Start (Desktop App)
+
+#### Windows
 1.  Download the **Standalone Distribution** (ZIP).
 2.  Extract the folder.
 3.  Run `setup.bat` once to import the model into Ollama.
-4.  Run `Translategemma.exe`.
+4.  Run `Translategemma.exe` or `run.bat`.
+
+#### Linux
+1.  Ensure you have `python3` and `pip` installed.
+2.  Make scripts executable: `chmod +x *.sh`.
+3.  Run `./setup.sh` to import the model.
+4.  Run `./build.sh` to compile the binary, OR just run `./run.sh` to start directly.
 
 ### Developer Setup (Source Code)
 If you want to run from source:
+
 ```bash
 # 1. Clone repo
 git clone https://github.com/yourusername/translategemma.git
 cd translategemma
 
-# 2. Setup Env
+# 2. Setup Env (Cross-platform)
 python -m venv .venv
+# Windows:
 .venv\Scripts\activate
+# Linux:
+source .venv/bin/activate
 
 # 3. Install Deps
 pip install -r requirements.txt
 
 # 4. Import Model
+# Windows:
 setup.bat
+# Linux:
+./setup.sh
 
 # 5. Run
+# Windows:
 python src/app.py
+# Linux:
+python3 src/app.py
 ```
 
 ## Usage
-1.  Run the application (`Translategemma.exe` or `src/app.py`).
-2.  Wait for the **"Waiting for Hotkey"** message in the console.
+1.  Run the application.
+    *   **Windows**: `Translategemma.exe`
+    *   **Linux**: `./dist/Translategemma/Translategemma` or `python3 src/app.py`
+2.  The app will minimize to the **System Tray**.
 3.  Press **`Shift + Alt + Z`**.
+    *   *Note: On Linux, if the global hotkey doesn't register (due to permissions), right-click the Tray Icon and select "Snip".*
 4.  Draw a rectangle around the English text on your screen.
-5.  Receive the translation via Windows Notification!
+5.  Receive the translation via Notification and Clipboard!
 
 ## Project Structure
 ```
 Translategemma/
 ├── src/
-│   ├── app.py           # Main entry point (Persistent GUI & Logic)
-│   ├── snipper.py       # Tkinter Screen Selection Tool
-│   ├── ocr_handler.py   # RapidOCR Wrapper
+│   ├── app.py           # Main entry point (System Tray & Logic)
+│   ├── snipper.py       # Cross-platform Screen Selection Tool
+│   ├── utils.py         # Platform specific logic (Notifications, Geometry)
 │   └── ...
 ├── models/              # GGUF Model and Modelfile
-├── dist/                # Pre-built executables (Excluded from Git)
-├── build.bat            # PyInstaller Build Script
-└── requirements.txt     # Python Dependencies
+├── dist/                # Pre-built executables
+├── build.bat / .sh      # Build Scripts
+├── setup.bat / .sh      # Setup Scripts
+└── run.bat / .sh        # Launcher Scripts
 ```
 
 ## License
